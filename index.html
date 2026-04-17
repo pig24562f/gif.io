@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>gif.io - Photo & Video to GIF</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+    :root {
+      /* Dark Theme */
+      --color-background-tertiary: #09090b;
+      --color-background-secondary: #18181b;
+      --color-background-primary: #27272a;
+      --color-border-tertiary: #3f3f46;
+      --color-border-secondary: #52525b;
+      --color-text-primary: #f4f4f5;
+      --color-text-secondary: #a1a1aa;
+      
+      --border-radius-lg: 12px;
+      --border-radius-md: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--color-background-tertiary);
+      color: var(--color-text-primary);
+      min-height: 100vh;
+    }
+
+    .header {
+      background: var(--color-background-secondary);
+      border-bottom: 1px solid var(--color-border-tertiary);
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      font-family: 'Space Mono', monospace;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      letter-spacing: -0.5px;
+    }
+
+    .logo span {
+      display: inline-block;
+      background: var(--color-text-primary);
+      color: var(--color-background-tertiary);
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      margin-left: 6px;
+      vertical-align: middle;
+      letter-spacing: 1px;
+    }
+
+    .tagline {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      margin-left: auto;
+    }
+
+    .main {
+      padding: 32px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 24px;
+      background: var(--color-background-secondary);
+      border-radius: var(--border-radius-lg);
+      padding: 4px;
+      width: fit-content;
+      border: 1px solid var(--color-border-tertiary);
+    }
+
+    .tab {
+      padding: 8px 20px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .tab.active {
+      background: var(--color-background-tertiary);
+      color: var(--color-text-primary);
+      border: 1px solid var(--color-border-secondary);
+    }
+
+    .drop-zone {
+      border: 2px dashed var(--color-border-secondary);
+      border-radius: var(--border-radius-lg);
+      background: var(--color-background-secondary);
+      padding: 56px 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: #71717a;
+      background: var(--color-background-primary);
+    }
+
+    .drop-icon {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 16px;
+      background: var(--color-background-primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--color-border-tertiary);
+    }
+
+    .drop-icon svg { opacity: 0.8; color: var(--color-text-primary); }
+
+    .drop-title {
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+      margin-bottom: 6px;
+    }
+
+    .drop-sub {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      margin-bottom: 20px;
+    }
+
+    .browse-btn {
+      display: inline-block;
+      padding: 9px 22px;
+      background: var(--color-text-primary);
+      color: var(--color-background-tertiary);
+      border-radius: var(--border-radius-md);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      transition: opacity 0.15s;
+    }
+
+    .browse-btn:hover { opacity: 0.8; }
+
+    .hidden-input { display: none; }
+
+    .settings-card {
+      background: var(--color-background-secondary);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-lg);
+      padding: 24px;
+      margin-top: 16px;
+    }
+
+    .settings-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 20px;
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .field select, .field input[type="number"] {
+      width: 100%;
+      height: 38px;
+      border: 1px solid var(--color-border-secondary);
+      border-radius: var(--border-radius-md);
+      padding: 0 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      background: var(--color-background-primary);
+      color: var(--color-text-primary);
+      outline: none;
+    }
+    
+    .field select:focus, .field input[type="number"]:focus {
+      border-color: var(--color-text-secondary);
+    }
+
+    .field input[type="range"] {
+      width: 100%;
+      margin-top: 8px;
+      accent-color: var(--color-text-primary);
+    }
+
+    .range-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .range-val {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      min-width: 32px;
+      text-align: right;
+    }
+
+    .queue-section { margin-top: 24px; }
+
+    .queue-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+    }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--color-background-secondary);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-md);
+      margin-bottom: 8px;
+    }
+
+    .file-thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: 6px;
+      background: var(--color-background-primary);
+      overflow: hidden;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .file-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+    .file-info { flex: 1; min-width: 0; }
+
+    .file-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-meta {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      margin-top: 4px;
+    }
+
+    .file-status {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .status-ready { background: #27272a; color: #a1a1aa; border: 1px solid #3f3f46; }
+    .status-processing { background: #422006; color: #fdba74; border: 1px solid #7c2d12; }
+    .status-done { background: #064e3b; color: #6ee7b7; border: 1px solid #065f46; }
+    .status-error { background: #7f1d1d; color: #fca5a5; border: 1px solid #991b1b; }
+
+    .remove-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--color-text-secondary);
+      padding: 4px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 20px;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+    .remove-btn:hover { color: #ef4444; }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+      align-items: center;
+    }
+
+    .btn-convert {
+      padding: 12px 28px;
+      background: var(--color-text-primary);
+      color: var(--color-background-tertiary);
+      border: none;
+      border-radius: var(--border-radius-md);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn-convert:hover:not(:disabled) { opacity: 0.9; }
+    .btn-convert:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-clear {
+      padding: 11px 20px;
+      background: transparent;
+      color: var(--color-text-primary);
+      border: 1px solid var(--color-border-secondary);
+      border-radius: var(--border-radius-md);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-clear:hover { background: var(--color-background-primary); }
+
+    .info-badge {
+      margin-left: auto;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      background: var(--color-background-primary);
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--color-border-tertiary);
+    }
+
+    .result-card {
+      background: var(--color-background-secondary);
+      border: 1px solid #065f46;
+      border-radius: var(--border-radius-lg);
+      padding: 20px 24px;
+      margin-top: 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .result-gif {
+      width: 100px;
+      height: 100px;
+      border-radius: 8px;
+      border: 1px solid var(--color-border-tertiary);
+      object-fit: cover;
+      flex-shrink: 0;
+      background: var(--color-background-primary);
+    }
+
+    .result-info { flex: 1; }
+
+    .result-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      margin-bottom: 6px;
+    }
+
+    .result-specs {
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      margin-bottom: 16px;
+    }
+
+    .btn-dl {
+      padding: 10px 20px;
+      background: var(--color-text-primary);
+      color: var(--color-background-tertiary);
+      border: none;
+      border-radius: var(--border-radius-md);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-dl:hover { opacity: 0.9; }
+
+    @media (max-width: 600px) {
+      .main { padding: 16px; }
+      .settings-grid { grid-template-columns: 1fr 1fr; }
+      .header { padding: 14px 16px; }
+      .tagline { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <div class="logo">gif.io <span>BETA</span></div>
+    <div class="tagline">Convert photos and videos to GIF directly in your browser</div>
+  </div>
+
+  <div class="main">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('photo')">Photo → GIF</button>
+      <button class="tab" onclick="switchTab('video')">Video → GIF</button>
+    </div>
+
+    <div id="tab-photo">
+      <div class="drop-zone" id="drop-photo"
+        ondragover="onDrag(event,true,'drop-photo')"
+        ondragleave="onDrag(event,false,'drop-photo')"
+        ondrop="onDrop(event,'photo')"
+        onclick="document.getElementById('inp-photo').click()">
+        <input class="hidden-input" type="file" id="inp-photo" multiple accept="image/*" onchange="handleFiles(this.files,'photo')">
+        <div class="drop-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+        </div>
+        <div class="drop-title">Drag & drop photos here</div>
+        <div class="drop-sub">Supports JPG, PNG, WebP — multiple files at once</div>
+        <button class="browse-btn" onclick="event.stopPropagation();document.getElementById('inp-photo').click()">Browse files</button>
+      </div>
+
+      <div class="settings-card">
+        <div class="settings-title">GIF Settings</div>
+        <div class="settings-grid">
+          <div class="field">
+            <label>Frame delay (ms)</label>
+            <input type="number" id="p-delay" value="200" min="50" max="5000" step="50">
+          </div>
+          <div class="field">
+            <label>Loop count</label>
+            <select id="p-loop">
+              <option value="0">Infinite</option>
+              <option value="1">1 time</option>
+              <option value="3">3 times</option>
+              <option value="5">5 times</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Quality scale</label>
+            <div class="range-row">
+              <input type="range" id="p-quality" min="10" max="100" value="80" step="5" oninput="document.getElementById('p-qval').textContent=this.value+'%'">
+              <span class="range-val" id="p-qval">80%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="queue-section" id="photo-queue-section" style="display:none">
+        <div class="queue-title">File Queue</div>
+        <div id="photo-queue"></div>
+        <div class="actions">
+          <button class="btn-convert" id="btn-photo-convert" onclick="convertPhotos()">Create GIF</button>
+          <button class="btn-clear" onclick="clearQueue('photo')">Clear</button>
+          <span class="info-badge" id="photo-count">0 files</span>
+        </div>
+      </div>
+
+      <div id="photo-results"></div>
+    </div>
+
+    <div id="tab-video" style="display:none">
+      <div class="drop-zone" id="drop-video"
+        ondragover="onDrag(event,true,'drop-video')"
+        ondragleave="onDrag(event,false,'drop-video')"
+        ondrop="onDrop(event,'video')"
+        onclick="document.getElementById('inp-video').click()">
+        <input class="hidden-input" type="file" id="inp-video" accept="video/*" onchange="handleFiles(this.files,'video')">
+        <div class="drop-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23,7 16,12 23,17 23,7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        </div>
+        <div class="drop-title">Drag & drop video here</div>
+        <div class="drop-sub">Supports MP4, WebM, MOV, AVI</div>
+        <button class="browse-btn" onclick="event.stopPropagation();document.getElementById('inp-video').click()">Browse video</button>
+      </div>
+
+      <div class="settings-card">
+        <div class="settings-title">Conversion Settings</div>
+        <div class="settings-grid">
+          <div class="field">
+            <label>Start (sec)</label>
+            <input type="number" id="v-start" value="0" min="0" step="0.5">
+          </div>
+          <div class="field">
+            <label>Duration (sec)</label>
+            <input type="number" id="v-duration" value="5" min="1" max="30" step="0.5">
+          </div>
+          <div class="field">
+            <label>FPS</label>
+            <select id="v-fps">
+              <option value="10">10 fps</option>
+              <option value="15" selected>15 fps</option>
+              <option value="20">20 fps</option>
+              <option value="24">24 fps</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Width (px)</label>
+            <input type="number" id="v-width" value="480" min="100" max="1280" step="10">
+          </div>
+          <div class="field">
+            <label>Render quality</label>
+            <div class="range-row">
+              <input type="range" id="v-quality" min="1" max="20" value="10" step="1" oninput="document.getElementById('v-qval').textContent=this.value">
+              <span class="range-val" id="v-qval">10</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="queue-section" id="video-queue-section" style="display:none">
+        <div class="queue-title">Video File</div>
+        <div id="video-queue"></div>
+        <div class="actions">
+          <button class="btn-convert" id="btn-video-convert" onclick="convertVideo()">Convert to GIF</button>
+          <button class="btn-clear" onclick="clearQueue('video')">Remove file</button>
+        </div>
+      </div>
+
+      <div id="video-results"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+<script>
+// --- CORS FIX FOR WORKER ---
+// Browsers block loading Web Workers from cross-origin domains (like cdnjs).
+// For gif.js to work, we fetch the worker script and create a local Blob URL.
+let gifWorkerBlobUrl = null;
+fetch('https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js')
+  .then(response => response.text())
+  .then(text => {
+    const blob = new Blob([text], { type: 'application/javascript' });
+    gifWorkerBlobUrl = URL.createObjectURL(blob);
+  })
+  .catch(err => console.error("Error loading Worker:", err));
+
+let photoFiles = [];
+let videoFile = null;
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='photo')||(i===1&&tab==='video')));
+  document.getElementById('tab-photo').style.display = tab==='photo' ? '' : 'none';
+  document.getElementById('tab-video').style.display = tab==='video' ? '' : 'none';
+}
+
+function onDrag(e, over, id) {
+  e.preventDefault();
+  document.getElementById(id).classList.toggle('drag-over', over);
+}
+
+function onDrop(e, type) {
+  e.preventDefault();
+  const id = type==='photo' ? 'drop-photo' : 'drop-video';
+  document.getElementById(id).classList.remove('drag-over');
+  handleFiles(e.dataTransfer.files, type);
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/(1024*1024)).toFixed(1) + ' MB';
+}
+
+function handleFiles(files, type) {
+  if (type === 'photo') {
+    for (const f of files) {
+      if (!f.type.startsWith('image/')) continue;
+      if (photoFiles.find(x => x.name===f.name)) continue;
+      photoFiles.push(f);
+    }
+    renderPhotoQueue();
+  } else {
+    const f = files[0];
+    if (!f || !f.type.startsWith('video/')) return;
+    videoFile = f;
+    renderVideoQueue();
+  }
+}
+
+function renderPhotoQueue() {
+  const qs = document.getElementById('photo-queue-section');
+  const q = document.getElementById('photo-queue');
+  const cnt = document.getElementById('photo-count');
+  if (!photoFiles.length) { qs.style.display='none'; return; }
+  qs.style.display='';
+  cnt.textContent = photoFiles.length + (photoFiles.length === 1 ? ' file' : ' files');
+  q.innerHTML = '';
+  photoFiles.forEach((f, i) => {
+    const div = document.createElement('div');
+    div.className = 'file-item';
+    div.id = 'pi-' + i;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const thumb = div.querySelector('.file-thumb');
+      thumb.innerHTML = '<img src="'+e.target.result+'" alt="">';
+    };
+    reader.readAsDataURL(f);
+    div.innerHTML = `
+      <div class="file-thumb" style="font-size:18px;">🖼</div>
+      <div class="file-info">
+        <div class="file-name">${f.name}</div>
+        <div class="file-meta">${formatSize(f.size)}</div>
+      </div>
+      <span class="file-status status-ready">Ready</span>
+      <button class="remove-btn" onclick="removePhoto(${i})">×</button>`;
+    q.appendChild(div);
+  });
+}
+
+function removePhoto(i) {
+  photoFiles.splice(i, 1);
+  renderPhotoQueue();
+}
+
+function clearQueue(type) {
+  if (type==='photo') {
+    photoFiles = [];
+    renderPhotoQueue();
+    document.getElementById('photo-results').innerHTML = '';
+  } else {
+    videoFile = null;
+    document.getElementById('video-queue-section').style.display = 'none';
+    document.getElementById('video-queue').innerHTML = '';
+    document.getElementById('video-results').innerHTML = '';
+  }
+}
+
+function renderVideoQueue() {
+  const qs = document.getElementById('video-queue-section');
+  const q = document.getElementById('video-queue');
+  if (!videoFile) { qs.style.display='none'; return; }
+  qs.style.display='';
+  q.innerHTML = `<div class="file-item">
+    <div class="file-thumb" style="font-size:20px; align-items:center; display:flex; justify-content:center;">🎬</div>
+    <div class="file-info">
+      <div class="file-name">${videoFile.name}</div>
+      <div class="file-meta">${formatSize(videoFile.size)}</div>
+    </div>
+    <span class="file-status status-ready">Ready</span>
+  </div>`;
+}
+
+function convertPhotos() {
+  if (!photoFiles.length || !gifWorkerBlobUrl) return;
+  const btn = document.getElementById('btn-photo-convert');
+  btn.disabled = true;
+  btn.textContent = 'Processing...';
+
+  const delay = parseInt(document.getElementById('p-delay').value) || 200;
+  const loop = parseInt(document.getElementById('p-loop').value) || 0;
+  const scale = parseInt(document.getElementById('p-quality').value) / 100;
+
+  const items = document.querySelectorAll('#photo-queue .file-item');
+  items.forEach((el) => {
+    const status = el.querySelector('.file-status');
+    status.className = 'file-status status-processing';
+    status.textContent = 'Processing';
+  });
+
+  Promise.all(photoFiles.map(f => loadImg(f, scale))).then(images => {
+    // Use the downloaded Worker Blob URL
+    const gif = new GIF({ 
+        workers: 2, 
+        quality: 10, 
+        repeat: loop,
+        workerScript: gifWorkerBlobUrl 
+    });
+    
+    images.forEach(img => gif.addFrame(img, { delay }));
+
+    gif.on('finished', blob => {
+      const url = URL.createObjectURL(blob);
+      showResult('photo', url, 'animated.gif', blob.size, images.length);
+      items.forEach(el => {
+        const status = el.querySelector('.file-status');
+        status.className = 'file-status status-done';
+        status.textContent = 'Done';
+      });
+      btn.disabled = false;
+      btn.textContent = 'Create GIF';
+    });
+
+    gif.render();
+  });
+}
+
+function loadImg(file, scale) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// Async video capture function for stability
+async function convertVideo() {
+  if (!videoFile || !gifWorkerBlobUrl) {
+      alert("Please wait for the converter components (Worker) to load or select a file.");
+      return;
+  }
+  
+  const btn = document.getElementById('btn-video-convert');
+  btn.disabled = true;
+  btn.textContent = 'Processing...';
+
+  const startSec = parseFloat(document.getElementById('v-start').value) || 0;
+  const duration = parseFloat(document.getElementById('v-duration').value) || 5;
+  const fps = parseInt(document.getElementById('v-fps').value) || 15;
+  const width = parseInt(document.getElementById('v-width').value) || 480;
+  const quality = parseInt(document.getElementById('v-quality').value) || 10;
+
+  const video = document.createElement('video');
+  video.src = URL.createObjectURL(videoFile);
+  video.muted = true;
+  video.crossOrigin = 'anonymous';
+
+  const statusBadge = document.getElementById('video-queue').querySelector('.file-status');
+  statusBadge.className = 'file-status status-processing';
+  statusBadge.textContent = 'Preparing...';
+
+  video.addEventListener('loadedmetadata', async () => {
+    const aspect = video.videoHeight / video.videoWidth;
+    const height = Math.round(width * aspect);
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = width; 
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+
+    const gif = new GIF({ 
+        workers: 4, 
+        quality: quality, 
+        workerScript: gifWorkerBlobUrl, 
+        width: width, 
+        height: height 
+    });
+
+    const frameDelay = Math.round(1000 / fps);
+    const totalFrames = Math.round(duration * fps);
+    
+    statusBadge.textContent = 'Capturing frames...';
+
+    // Helper function to await video seek
+    const seekVideo = (time) => new Promise(resolve => {
+        video.currentTime = time;
+        video.addEventListener('seeked', resolve, { once: true });
+    });
+
+    // Synchronous frame capture loop
+    for (let i = 0; i < totalFrames; i++) {
+        const time = startSec + (i / fps);
+        if (time > video.duration) break; // Failsafe if video is shorter
+        
+        await seekVideo(time);
+        ctx.drawImage(video, 0, 0, width, height);
+        
+        const frameCanvas = document.createElement('canvas');
+        frameCanvas.width = width; 
+        frameCanvas.height = height;
+        frameCanvas.getContext('2d').drawImage(canvas, 0, 0);
+        
+        gif.addFrame(frameCanvas, { delay: frameDelay });
+        
+        const prog = Math.round(((i + 1) / totalFrames) * 100);
+        btn.textContent = `Capturing... ${prog}%`;
+    }
+
+    statusBadge.textContent = 'Rendering GIF...';
+    btn.textContent = 'Rendering (multi-threaded)...';
+
+    gif.on('finished', blob => {
+      const url = URL.createObjectURL(blob);
+      showResult('video', url, 'video.gif', blob.size, totalFrames);
+      
+      statusBadge.className = 'file-status status-done';
+      statusBadge.textContent = 'Done';
+      btn.disabled = false;
+      btn.textContent = 'Convert to GIF';
+    });
+
+    gif.render();
+  });
+
+  video.load();
+}
+
+function showResult(type, url, name, size, frames) {
+  const container = document.getElementById(type + '-results');
+  const div = document.createElement('div');
+  div.className = 'result-card';
+  div.innerHTML = `
+    <img src="${url}" class="result-gif" alt="result">
+    <div class="result-info">
+      <div class="result-name">${name}</div>
+      <div class="result-specs">${frames} frames · ${formatSize(size)}</div>
+      <a href="${url}" download="${name}" class="btn-dl">Download GIF</a>
+    </div>`;
+  container.innerHTML = '';
+  container.appendChild(div);
+}
+</script>
+</body>
+</html>
